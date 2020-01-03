@@ -81,331 +81,331 @@
 <script>
 
 export default {
-    props: {
-        heatingBackgroundColor: {
-            type: String,
-            default: '#ff8100'
-        },
-        inactiveBackgroundColor: {
-            type: String,
-            default: '#222'
-        },
-        activeTickColor: {
-            type: String,
-            default: '#fff'
-        },
-        inactiveTickColor: {
-            type: String,
-            default: 'rgba(255, 255, 255, 0.3)'
-        },
-        diameter: {
-            type: Number,
-            default: 400
-        },
-        numTicks: {
-            type: Number,
-            default: 150
-        },
-        tickDegrees: {
-            type: Number,
-            default: 300
-        },
-        minTemperature: {
-            type: Number,
-            default: 10,
-        },
-        maxTemperature: {
-            type: Number,
-            default: 30,
-        },
-        currentTemperature: {
-            type: Number,
-            default: 10,
-        },
-        targetTemperature: {
-            type: Number,
-            default: 22,
-        },
-        hvacMode: {
-            type: String,
-            default: 'PROGRAM'
-        },
-        presetMode: {
-            type: String,
-            default: 'PROGRAM'
-        },
-        presetModes: {
-            type: Array,
-            default () {
-                return [{
-                    label: 'PROGRAM',
-                    value: 'PROGRAM'
-                }]
-            }
-        },
-        fontStyle: {
-            type: Object,
-            default() {
-                return {
-                    'text-anchor': 'middle',
-                    'font-family': 'Helvetica, sans-serif',
-                    'alignment-baseline': 'central',
-                    'font-weight': 'bold',
-                }
-            }
-        },
-        temperatureUnit: {
-            type: String,
-            default: '°C'
-        }
+  props: {
+    heatingBackgroundColor: {
+      type: String,
+      default: '#ff8100'
     },
-    data () {
+    inactiveBackgroundColor: {
+      type: String,
+      default: '#222'
+    },
+    activeTickColor: {
+      type: String,
+      default: '#fff'
+    },
+    inactiveTickColor: {
+      type: String,
+      default: 'rgba(255, 255, 255, 0.3)'
+    },
+    diameter: {
+      type: Number,
+      default: 400
+    },
+    numTicks: {
+      type: Number,
+      default: 150
+    },
+    tickDegrees: {
+      type: Number,
+      default: 300
+    },
+    minTemperature: {
+      type: Number,
+      default: 10
+    },
+    maxTemperature: {
+      type: Number,
+      default: 30
+    },
+    currentTemperature: {
+      type: Number,
+      default: 10
+    },
+    targetTemperature: {
+      type: Number,
+      default: 22
+    },
+    hvacMode: {
+      type: String,
+      default: 'PROGRAM'
+    },
+    presetMode: {
+      type: String,
+      default: 'PROGRAM'
+    },
+    presetModes: {
+      type: Array,
+      default () {
+        return [{
+          label: 'PROGRAM',
+          value: 'PROGRAM'
+        }]
+      }
+    },
+    fontStyle: {
+      type: Object,
+      default () {
         return {
-            requestedTemperature: -1,
-            requestedMode: 'off',
-            dragging: false
+          'text-anchor': 'middle',
+          'font-family': 'Helvetica, sans-serif',
+          'alignment-baseline': 'central',
+          'font-weight': 'bold'
         }
+      }
     },
-    mounted () {
-        this.requestedTemperature = this.targetTemperature
-        this.requestedMode = this.hvacMode
+    temperatureUnit: {
+      type: String,
+      default: '°C'
+    }
+  },
+  data () {
+    return {
+      requestedTemperature: -1,
+      requestedMode: 'off',
+      dragging: false
+    }
+  },
+  mounted () {
+    this.requestedTemperature = this.targetTemperature
+    this.requestedMode = this.hvacMode
+  },
+  watch: {
+    targetTemperature (temp) {
+      this.requestedTemperature = temp
     },
-    watch: {
-        targetTemperature (temp) {
-            this.requestedTemperature = temp
-        },
-        hvacMode (mode) {
-            this.requestedMode = mode
-        }
+    hvacMode (mode) {
+      this.requestedMode = mode
+    }
+  },
+  computed: {
+    heating () {
+      return this.hvacMode === 'heat'
     },
-    computed: {
-        heating () {
-            return this.hvacMode === 'heat'
-        },
-        viewBox () {
-            return `0 0 ${this.diameter} ${this.diameter}`
-        },
-        radius () {
-            return this.diameter / 2
-        },
-        dialShape () {
-            return {
-                fill: this.backgroundColor,
-                transition: 'fill 0.5s'
-            }
-        },
-        rangeValue () {
-            return this.maxTemperature - this.minTemperature
-        },
-        min () {
-            var vMin = Math.min(this.currentTemperature, this.requestedTemperature);
-
-            return this.restrictToRange(
-                Math.round((vMin - this.minTemperature) / this.rangeValue * this.numTicks),
-                0,
-                this.numTicks - 1
-            );
-        },
-        max () {
-            var vMax = Math.max(this.currentTemperature, this.requestedTemperature);
-
-            return this.restrictToRange(
-                Math.round((vMax - this.minTemperature) / this.rangeValue * this.numTicks),
-                0,
-                this.numTicks - 1
-            );
-        },
-        backgroundColor () {
-            if(this.heating) {
-                return this.heatingBackgroundColor
-            } else {
-                return this.inactiveBackgroundColor
-            }
-        },
-        editablePathStyle () {
-            return {
-                fill: this.activeTickColor,
-                'fill-rule': 'evenodd',
-                opacity: this.dragging ? 1 : 0,
-                transition: 'opacity 0.5s',
-            }
-        },
-        lblTargetHalfStyle () {
-            return _.assign({}, this.fontStyle, {
-                fill: this.activeTickColor,
-                'font-size': '40px',
-            })
-        },
-        lblTargetStyle () {
-            return _.assign({}, this.fontStyle, {
-                fill: this.activeTickColor,
-                'font-size': '120px',
-            })
-        },
-        lblPresetModeStyle () {
-            return _.assign({}, this.fontStyle, {
-                fill: this.activeTickColor,
-                'font-size': '22px',
-            })
-        },
-        lblAmbientStyle () {
-            return _.assign({}, this.fontStyle, {
-                fill: this.activeTickColor,
-                'font-size': `22px`,
-            })
-        },
-        lblAmbientPosition () {
-            return [
-                this.radius,
-                this.ticksOuterRadius - (this.ticksOuterRadius - this.ticksInnerRadius) / 2
-            ]
-        },
-        lblAmbientPositionPoint () {
-            var peggedValue = this.restrictToRange(this.currentTemperature, this.minTemperature, this.maxTemperature);
-            var degs = this.tickDegrees * (peggedValue - this.minTemperature) / this.rangeValue - this.offsetDegrees;
-
-			if (peggedValue > this.requestedTemperature) {
-				degs += 15;
-			} else {
-				degs -= 15;
-            }
-
-            return this.rotatePoint(this.lblAmbientPosition, degs, [this.radius, this.radius])
-        },
-        ticks () {
-            var ticks = []
-            for (var i = 0; i < this.numTicks; i++) {
-                var isLarge = i == this.min || i == this.max;
-
-                var point = this.rotatePoints(isLarge ? this.tickPointsLarge : this.tickPoints, i * this.theta - this.offsetDegrees, [
-                    this.radius, this.radius
-                ])
-                ticks.push(point)
-            }
-            return ticks
-        },
-        offsetDegrees () {
-            return 180 - (360 - this.tickDegrees) / 2
-        },
-        theta () {
-            return this.tickDegrees / this.numTicks
-        },
-        ticksOuterRadius () {
-            return this.diameter / 30
-        },
-        ticksInnerRadius () {
-            return this.diameter / 8
-        },
-        tickPoints () {
-            return [
-                [this.radius-1, this.ticksOuterRadius],
-                [this.radius+1, this.ticksOuterRadius],
-                [this.radius+1, this.ticksInnerRadius],
-                [this.radius-1, this.ticksInnerRadius]
-            ]
-        },
-        tickPointsLarge () {
-            return [
-                [this.radius-1.5, this.ticksOuterRadius],
-                [this.radius+1.5, this.ticksOuterRadius],
-                [this.radius+1.5, this.ticksInnerRadius+20],
-                [this.radius-1.5, this.ticksInnerRadius+20]
-            ]
-        },
+    viewBox () {
+      return `0 0 ${this.diameter} ${this.diameter}`
     },
-    methods: {
-        startDragging(e) {
-            this.dragging = true
-        },
-        stopDragging(e) {
-            this.dragging = false
-            this.$emit('update:targetTemperature', {
-                temp: this.requestedTemperature,
-                mode: this.requestedMode
-            })
-        },
-        updateDragging(e) {
-            if(!this.dragging) {
-                return
-            }
+    radius () {
+      return this.diameter / 2
+    },
+    dialShape () {
+      return {
+        fill: this.backgroundColor,
+        transition: 'fill 0.5s'
+      }
+    },
+    rangeValue () {
+      return this.maxTemperature - this.minTemperature
+    },
+    min () {
+      var vMin = Math.min(this.currentTemperature, this.requestedTemperature)
 
-            var rect = this.$refs.dial.getBoundingClientRect()
-            var center = {
-                x: (rect.left + rect.width / 2),
-                y: (rect.top + rect.height / 2)
-            }
+      return this.restrictToRange(
+        Math.round((vMin - this.minTemperature) / this.rangeValue * this.numTicks),
+        0,
+        this.numTicks - 1
+      )
+    },
+    max () {
+      var vMax = Math.max(this.currentTemperature, this.requestedTemperature)
 
-            var deltaX = e.clientX - center.x,
-                deltaY = center.y - e.clientY
+      return this.restrictToRange(
+        Math.round((vMax - this.minTemperature) / this.rangeValue * this.numTicks),
+        0,
+        this.numTicks - 1
+      )
+    },
+    backgroundColor () {
+      if (this.heating) {
+        return this.heatingBackgroundColor
+      } else {
+        return this.inactiveBackgroundColor
+      }
+    },
+    editablePathStyle () {
+      return {
+        fill: this.activeTickColor,
+        'fill-rule': 'evenodd',
+        opacity: this.dragging ? 1 : 0,
+        transition: 'opacity 0.5s'
+      }
+    },
+    lblTargetHalfStyle () {
+      return _.assign({}, this.fontStyle, {
+        fill: this.activeTickColor,
+        'font-size': '40px'
+      })
+    },
+    lblTargetStyle () {
+      return _.assign({}, this.fontStyle, {
+        fill: this.activeTickColor,
+        'font-size': '120px'
+      })
+    },
+    lblPresetModeStyle () {
+      return _.assign({}, this.fontStyle, {
+        fill: this.activeTickColor,
+        'font-size': '22px'
+      })
+    },
+    lblAmbientStyle () {
+      return _.assign({}, this.fontStyle, {
+        fill: this.activeTickColor,
+        'font-size': `22px`
+      })
+    },
+    lblAmbientPosition () {
+      return [
+        this.radius,
+        this.ticksOuterRadius - (this.ticksOuterRadius - this.ticksInnerRadius) / 2
+      ]
+    },
+    lblAmbientPositionPoint () {
+      var peggedValue = this.restrictToRange(this.currentTemperature, this.minTemperature, this.maxTemperature)
+      var degs = this.tickDegrees * (peggedValue - this.minTemperature) / this.rangeValue - this.offsetDegrees
 
-            var thetaRadians = Math.atan2(deltaX, deltaY)
-            var deg = thetaRadians * 180 / Math.PI
+      if (peggedValue > this.requestedTemperature) {
+        degs += 15
+      } else {
+        degs -= 15
+      }
 
-            this.requestedTemperature = Math.round((deg + this.offsetDegrees) * this.rangeValue / this.tickDegrees) + this.minTemperature
+      return this.rotatePoint(this.lblAmbientPosition, degs, [this.radius, this.radius])
+    },
+    ticks () {
+      var ticks = []
+      for (var i = 0; i < this.numTicks; i++) {
+        var isLarge = i == this.min || i == this.max
 
-            if(this.requestedTemperature < this.currentTemperature) {
-                this.requestedMode = 'off'
-            } else {
-                this.requestedMode = 'heat'
-            }
-        },
-        dialTick (index) {
-            var isActive = index >= this.min && index <= this.max;
+        var point = this.rotatePoints(isLarge ? this.tickPointsLarge : this.tickPoints, i * this.theta - this.offsetDegrees, [
+          this.radius, this.radius
+        ])
+        ticks.push(point)
+      }
+      return ticks
+    },
+    offsetDegrees () {
+      return 180 - (360 - this.tickDegrees) / 2
+    },
+    theta () {
+      return this.tickDegrees / this.numTicks
+    },
+    ticksOuterRadius () {
+      return this.diameter / 30
+    },
+    ticksInnerRadius () {
+      return this.diameter / 8
+    },
+    tickPoints () {
+      return [
+        [this.radius - 1, this.ticksOuterRadius],
+        [this.radius + 1, this.ticksOuterRadius],
+        [this.radius + 1, this.ticksInnerRadius],
+        [this.radius - 1, this.ticksInnerRadius]
+      ]
+    },
+    tickPointsLarge () {
+      return [
+        [this.radius - 1.5, this.ticksOuterRadius],
+        [this.radius + 1.5, this.ticksOuterRadius],
+        [this.radius + 1.5, this.ticksInnerRadius + 20],
+        [this.radius - 1.5, this.ticksInnerRadius + 20]
+      ]
+    }
+  },
+  methods: {
+    startDragging (e) {
+      this.dragging = true
+    },
+    stopDragging (e) {
+      this.dragging = false
+      this.$emit('update:targetTemperature', {
+        temp: this.requestedTemperature,
+        mode: this.requestedMode
+      })
+    },
+    updateDragging (e) {
+      if (!this.dragging) {
+        return
+      }
 
-            return {
-                fill: isActive ? this.activeTickColor : this.inactiveTickColor
-            }
-        },
-        /**
+      var rect = this.$refs.dial.getBoundingClientRect()
+      var center = {
+        x: (rect.left + rect.width / 2),
+        y: (rect.top + rect.height / 2)
+      }
+
+      var deltaX = e.clientX - center.x
+      var deltaY = center.y - e.clientY
+
+      var thetaRadians = Math.atan2(deltaX, deltaY)
+      var deg = thetaRadians * 180 / Math.PI
+
+      this.requestedTemperature = Math.round((deg + this.offsetDegrees) * this.rangeValue / this.tickDegrees) + this.minTemperature
+
+      if (this.requestedTemperature < this.currentTemperature) {
+        this.requestedMode = 'off'
+      } else {
+        this.requestedMode = 'heat'
+      }
+    },
+    dialTick (index) {
+      var isActive = index >= this.min && index <= this.max
+
+      return {
+        fill: isActive ? this.activeTickColor : this.inactiveTickColor
+      }
+    },
+    /**
          * Rotate a cartesian point about given origin by X degrees
          */
-        rotatePoint (point, angle, origin) {
-            var radians = angle * Math.PI/180;
-            var x = point[0]-origin[0];
-            var y = point[1]-origin[1];
-            var x1 = x*Math.cos(radians) - y*Math.sin(radians) + origin[0];
-            var y1 = x*Math.sin(radians) + y*Math.cos(radians) + origin[1];
-            return [x1,y1];
-        },
-        /**
+    rotatePoint (point, angle, origin) {
+      var radians = angle * Math.PI / 180
+      var x = point[0] - origin[0]
+      var y = point[1] - origin[1]
+      var x1 = x * Math.cos(radians) - y * Math.sin(radians) + origin[0]
+      var y1 = x * Math.sin(radians) + y * Math.cos(radians) + origin[1]
+      return [x1, y1]
+    },
+    /**
          * Rotate an array of cartesian points about a given origin by X degrees
          */
-        rotatePoints (points, angle, origin) {
-            return points.map(point => {
-                return this.rotatePoint(point, angle, origin);
-            });
-        },
-        pointsToPath (points) {
-            return points.map(function(point, iPoint) {
-                return (iPoint>0?'L':'M') + point[0] + ' ' + point[1];
-            }).join(' ')+'Z';
-        },
-        circleToPath (cx, cy, r) {
-            return [
-                "M",cx,",",cy,
-                "m",0-r,",",0,
-                "a",r,",",r,0,1,",",0,r*2,",",0,
-                "a",r,",",r,0,1,",",0,0-r*2,",",0,
-                "z"
-            ].join(' ').replace(/\s,\s/g,",");
-        },
-        donutPath (cx,cy,rOuter,rInner) {
-            return this.circleToPath(cx,cy,rOuter) + " " + this.circleToPath(cx,cy,rInner);
-        },
-        /**
+    rotatePoints (points, angle, origin) {
+      return points.map(point => {
+        return this.rotatePoint(point, angle, origin)
+      })
+    },
+    pointsToPath (points) {
+      return points.map(function (point, iPoint) {
+        return (iPoint > 0 ? 'L' : 'M') + point[0] + ' ' + point[1]
+      }).join(' ') + 'Z'
+    },
+    circleToPath (cx, cy, r) {
+      return [
+        'M', cx, ',', cy,
+        'm', 0 - r, ',', 0,
+        'a', r, ',', r, 0, 1, ',', 0, r * 2, ',', 0,
+        'a', r, ',', r, 0, 1, ',', 0, 0 - r * 2, ',', 0,
+        'z'
+      ].join(' ').replace(/\s,\s/g, ',')
+    },
+    donutPath (cx, cy, rOuter, rInner) {
+      return this.circleToPath(cx, cy, rOuter) + ' ' + this.circleToPath(cx, cy, rInner)
+    },
+    /**
          * Restrict a number to a min + max range
          */
-	    restrictToRange (val,min,max) {
-            if (val < min) return min;
-            if (val > max) return max;
-            return val;
-        },
-        /**
+	    restrictToRange (val, min, max) {
+      if (val < min) return min
+      if (val > max) return max
+      return val
+    },
+    /**
          *  Round a number to the nearest 0.5
          */
-        roundHalf (num) {
-            return Math.round(num*2)/2;
-        }
+    roundHalf (num) {
+      return Math.round(num * 2) / 2
     }
+  }
 }
 </script>

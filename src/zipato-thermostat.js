@@ -38,7 +38,7 @@ class ZipatoThermostat extends ZipatoThermostatWrap {
     }
     if (!vm.hass) {
       vm.hass = this._hass
-      vm.fireHassEvent = (type, detail = {}, {bubbles = true, cancelable = false, composed = true} = {bubbles: true, cancelable: false, composed: true}) => {
+      vm.fireHassEvent = (type, detail = {}, { bubbles = true, cancelable = false, composed = true } = { bubbles: true, cancelable: false, composed: true }) => {
         var event = new Event(type, {
           bubbles, cancelable, composed
         })

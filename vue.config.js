@@ -14,6 +14,6 @@ module.exports = {
       splitChunks: false
     }
   },
-  productionSourceMap: false,
-  //runtimeCompiler: true
+  productionSourceMap: false
+  // runtimeCompiler: true
 }

@@ -99,8 +99,8 @@ export default {
     }
   },
   methods: {
-    handleMoreInfo() {
-      this.fireHassEvent("hass-more-info", {entityId: this.config.entity})
+    handleMoreInfo () {
+      this.fireHassEvent('hass-more-info', { entityId: this.config.entity })
     },
     handleToggleHeating () {
       var mode = this.state === 'off' ? 'heat' : 'off'
@@ -110,8 +110,8 @@ export default {
         hvac_mode: mode
       })
     },
-    handleChangeTargetTemperature ({temp, mode = 'heat'}) {
-      if(this.target_temperature === temp && this.state === mode) {
+    handleChangeTargetTemperature ({ temp, mode = 'heat' }) {
+      if (this.target_temperature === temp && this.state === mode) {
         return
       }
 
