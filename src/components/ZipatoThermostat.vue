@@ -15,15 +15,19 @@
     <div class="card-body">
       <nest-thermostat
         id="nest"
+        v-if="loaded"
         :current-temperature="current_temperature"
         :target-temperature="target_temperature"
         :max-temperature="max_temp"
         :min-temperature="min_temp"
         :hvac-mode="state"
-        :preset-mode="presetMode"
+        :preset-mode="preset_mode"
+        :hold-until="hold_until"
         @click="handleMoreInfo"
         @toggleHeating="handleToggleHeating"
         v-on:update:targetTemperature="handleChangeTargetTemperature"
+        v-on:update:holdUntil="handleHoldUntil"
+        v-on:update:presetMode="handleSetPresetMode"
       />
     </div>
   </ha-card>
@@ -38,6 +42,7 @@ export default {
   },
   data () {
     return {
+      loaded: false,
       config: {},
       hass: null,
       fireHassEvent: (type, detail = {}, options = {}) => false,
@@ -53,7 +58,7 @@ export default {
       supported_features: 17,
       target_temp_step: 1,
       temperature: 22,
-      target_temperature: 0
+      target_temperature: -1
     }
   },
   computed: {
@@ -91,6 +96,7 @@ export default {
         })
 
         this.target_temperature = this.temperature
+        this.loaded = true
       }
     },
     config (newConfig, oldConfig) {
@@ -108,6 +114,18 @@ export default {
       this.hass.callService('climate', 'set_hvac_mode', {
         entity_id: this.config.entity,
         hvac_mode: mode
+      })
+    },
+    handleHoldUntil (until) {
+      this.hass.callService('zipato', 'set_hold_until', {
+        entity_id: this.config.entity,
+        timestamp: until
+      })
+    },
+    handleSetPresetMode (mode) {
+      this.hass.callService('climate', 'set_preset_mode', {
+        entity_id: this.config.entity,
+        preset_mode: mode,
       })
     },
     handleChangeTargetTemperature ({ temp, mode = 'heat' }) {

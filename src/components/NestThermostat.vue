@@ -2,93 +2,146 @@
     <svg
         width="100%"
         height="100%"
-        :viewBox="viewBox"
-        ref="dial"
+        :viewBox="`0 0 ${this.diameter} ${this.diameter}`"
     >
-        <circle
-            :cx="radius"
-            :cy="radius"
-            :r="radius"
-            :style="dialShape"
-            @mousedown="startDragging"
-            @mousemove="updateDragging"
-            @mouseup="stopDragging"
-            @click="stopDragging"
-        />
-        <g
-            style="pointer-events: none"
+      <defs>
+        <radialGradient id="gradient6" cx="50%" cy="50%" r="50%" fx="20%" fy="20%">
+          <stop offset="0%" style="stop-color:rgba(255, 255, 255, 0.4);" />
+          <stop offset="100%" style="stop-color:rgba(255, 255, 255, 0);" />
+        </radialGradient>
+      </defs>
+        <horseshoe-slider
+          id="tempChangeSlider"
+          :active-tick-color="activeTickColor"
+          :inactive-tick-color="inactiveTickColor"
+          :background-color="backgroundColor"
+          :diameter="diameter"
+          :slider-min="minTemperature"
+          :slider-max="maxTemperature"
+          :slider-low="currentTemperature"
+          :slider-high.sync="requestedTemperature"
+          :style="tempChangeStyle"
         >
-            <path
-                :d="donutPath(radius, radius, radius - 4, radius - 8)"
-                :style="editablePathStyle"
-            />
-            <g>
-                <path
-                    v-for="(point, index) in ticks"
-                    :key="index"
-                    :d="pointsToPath(point)"
-                    :style="dialTick(index)"
-                />
-            </g>
-            <text
-                :x="radius - radius / 20"
-                :y="radius - radius / 8"
-                :style="lblTargetStyle"
-            >
-                {{ requestedTemperature }}
+          <template v-slot:label="{currentValue}">
+            <text v-bind="lblTarget">
+              {{ currentValue }}
             </text>
-            <text
-                :x="radius - radius / 25"
-                :y="radius + radius / 4"
-                :style="lblPresetModeStyle"
-            >
-                {{ presetMode }}
+            <text v-bind="lblPresetMode">
+              {{ isHoldUntil ? displayHoldUntilAttribute : presetMode }}
             </text>
-            <text
-                :x="radius + radius / 2.5"
-                :y="radius - radius / 4"
-                :style="lblTargetHalfStyle"
-            >
-                {{ temperatureUnit }}
+            <text v-bind="lblTargetHalf">
+              {{ temperatureUnit }}
             </text>
-            <text
-                :x="lblAmbientPositionPoint[0]"
-                :y="lblAmbientPositionPoint[1]"
-                :style="lblAmbientStyle"
-            >
-                {{ currentTemperature }}{{ temperatureUnit }}
+          </template>
+          <template v-slot:current="{ambient, low, high}">
+            <text v-bind="getAmbientLabel(ambient)">
+              {{ currentTemperature }}{{ temperatureUnit }}
             </text>
-        </g>
+          </template>
+        </horseshoe-slider>
+        <horseshoe-slider
+          id="timeChangeSlider"
+          :active-tick-color="activeTickColor"
+          :inactive-tick-color="inactiveTickColor"
+          :background-color="timeBackgroundColor"
+          :num-ticks="12"
+          :tick-degrees="300"
+          :diameter="diameter"
+          :slider-min="0"
+          :slider-max="12"
+          :slider-low="0"
+          :slider-high.sync="requestedTime"
+          :style="timeChangeStyle"
+        >
+          <template v-slot:background="{dialShape, low, min, high, max}">
+            <circle v-bind="dialShape" />
+            <path v-bind="getBaseTrack(min, max)" />
+            <path v-bind="getActiveTrack(low, high)" />
+          </template>
+          <template v-slot:tick="tick">
+            <circle v-bind="getCircleTick(tick)" />
+          </template>
+          <template v-slot:label="{currentValue}">
+            <text v-bind="lblTime">
+              {{ displayTime(currentValue) }}
+            </text>
+            <text v-bind="lblTimeLong" >
+              {{ displayHoldUntil(currentValue) }}
+            </text>
+          </template>
+        </horseshoe-slider>
         <g
             @click="$emit('toggleHeating')"
             style="cursor: pointer"
         >
             <rect
-                :width="radius * 0.8"
-                :height="ticksInnerRadius"
-                :x="radius - radius * 0.4"
-                :y="radius * 2 - ticksInnerRadius - ticksOuterRadius"
-                fill="transparent"
+              :width="diameter * 0.12"
+              :height="diameter * 0.14"
+              :x="iconOffsetX()"
+              :y="iconOffsetY()"
+              fill="transparent"
             />
             <path
-                :fill="activeTickColor"
-                :transform="`translate(${radius - radius / 10} ${1.95 * radius - ticksInnerRadius}) scale(2)`"
-                d="M17.55,11.2C17.32,10.9 17.05,10.64 16.79,10.38C16.14,9.78 15.39,9.35 14.76,8.72C13.3,7.26 13,4.85 13.91,3C13,3.23 12.16,3.75 11.46,4.32C8.92,6.4 7.92,10.07 9.12,13.22C9.16,13.32 9.2,13.42 9.2,13.55C9.2,13.77 9.05,13.97 8.85,14.05C8.63,14.15 8.39,14.09 8.21,13.93C8.15,13.88 8.11,13.83 8.06,13.76C6.96,12.33 6.78,10.28 7.53,8.64C5.89,10 5,12.3 5.14,14.47C5.18,14.97 5.24,15.47 5.41,15.97C5.55,16.57 5.81,17.17 6.13,17.7C7.17,19.43 9,20.67 10.97,20.92C13.07,21.19 15.32,20.8 16.93,19.32C18.73,17.66 19.38,15 18.43,12.72L18.3,12.46C18.1,12 17.83,11.59 17.5,11.21L17.55,11.2M14.45,17.5C14.17,17.74 13.72,18 13.37,18.1C12.27,18.5 11.17,17.94 10.5,17.28C11.69,17 12.39,16.12 12.59,15.23C12.76,14.43 12.45,13.77 12.32,13C12.2,12.26 12.22,11.63 12.5,10.94C12.67,11.32 12.87,11.7 13.1,12C13.86,13 15.05,13.44 15.3,14.8C15.34,14.94 15.36,15.08 15.36,15.23C15.39,16.05 15.04,16.95 14.44,17.5H14.45Z"
+              :fill="stateIconColor"
+              :transform="`translate(${iconOffsetX()} ${iconOffsetY()}) scale(2)`"
+              d="M17.55,11.2C17.32,10.9 17.05,10.64 16.79,10.38C16.14,9.78 15.39,9.35 14.76,8.72C13.3,7.26 13,4.85 13.91,3C13,3.23 12.16,3.75 11.46,4.32C8.92,6.4 7.92,10.07 9.12,13.22C9.16,13.32 9.2,13.42 9.2,13.55C9.2,13.77 9.05,13.97 8.85,14.05C8.63,14.15 8.39,14.09 8.21,13.93C8.15,13.88 8.11,13.83 8.06,13.76C6.96,12.33 6.78,10.28 7.53,8.64C5.89,10 5,12.3 5.14,14.47C5.18,14.97 5.24,15.47 5.41,15.97C5.55,16.57 5.81,17.17 6.13,17.7C7.17,19.43 9,20.67 10.97,20.92C13.07,21.19 15.32,20.8 16.93,19.32C18.73,17.66 19.38,15 18.43,12.72L18.3,12.46C18.1,12 17.83,11.59 17.5,11.21L17.55,11.2M14.45,17.5C14.17,17.74 13.72,18 13.37,18.1C12.27,18.5 11.17,17.94 10.5,17.28C11.69,17 12.39,16.12 12.59,15.23C12.76,14.43 12.45,13.77 12.32,13C12.2,12.26 12.22,11.63 12.5,10.94C12.67,11.32 12.87,11.7 13.1,12C13.86,13 15.05,13.44 15.3,14.8C15.34,14.94 15.36,15.08 15.36,15.23C15.39,16.05 15.04,16.95 14.44,17.5H14.45Z"
             />
         </g>
+        <g
+          @click="toggleMode"
+          style="cursor: pointer"
+        >
+          <rect
+            :width="diameter * 0.12"
+            :height="diameter * 0.14"
+            :x="iconOffsetX(0.15)"
+            :y="iconOffsetY()"
+            fill="transparent"
+          />
+          <path
+            :fill="modeIconColor"
+            :transform="`translate(${iconOffsetX(0.15)} ${iconOffsetY()}) scale(2)`"
+            d="M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M16.24,7.76C15.07,6.58 13.53,6 12,6V12L7.76,16.24C10.1,18.58 13.9,18.58 16.24,16.24C18.59,13.9 18.59,10.1 16.24,7.76Z"
+          />
+        </g>
+        <circle
+          :cx="radius"
+          :cy="radius"
+          :r="radius"
+          fill="url(#gradient6)"
+          style="pointer-events: none"
+        />
     </svg>
 </template>
 <script>
+import {describeArcPath} from '../util/util'
+import HorseshoeSlider from './HorseshoeSlider'
+import moment from 'moment'
 
 export default {
+  components: {
+    HorseshoeSlider
+  },
   props: {
-    heatingBackgroundColor: {
+    diameter: {
+      type: Number,
+      default: 400
+    },
+    heatingColor: {
       type: String,
       default: '#ff8100'
+    },
+    activeColor: {
+      type: String,
+      default: '#3c902a'
     },
     inactiveBackgroundColor: {
       type: String,
       default: '#222'
+    },
+    timeBackgroundColor: {
+      type: String,
+      default: '#155b7b'
     },
     activeTickColor: {
       type: String,
@@ -97,18 +150,6 @@ export default {
     inactiveTickColor: {
       type: String,
       default: 'rgba(255, 255, 255, 0.3)'
-    },
-    diameter: {
-      type: Number,
-      default: 400
-    },
-    numTicks: {
-      type: Number,
-      default: 150
-    },
-    tickDegrees: {
-      type: Number,
-      default: 300
     },
     minTemperature: {
       type: Number,
@@ -129,6 +170,10 @@ export default {
     hvacMode: {
       type: String,
       default: 'PROGRAM'
+    },
+    holdUntil: {
+      type: String,
+      default: '2019-12-31T23:55:00+01:00'
     },
     presetMode: {
       type: String,
@@ -163,14 +208,53 @@ export default {
     return {
       requestedTemperature: -1,
       requestedMode: 'off',
+      requestedTime: 0,
+      offsetMinutes: -1,
+      mode: 'time',
       dragging: false
     }
   },
   mounted () {
     this.requestedTemperature = this.targetTemperature
     this.requestedMode = this.hvacMode
+
+    var holdUntil = moment(this.holdUntil)
+    var now = moment()
+
+    this.requestedTime = this.roundHalf(holdUntil.diff(now, 'minutes') / 60) * 2
   },
   watch: {
+    offsetMinutes (minutes, oldMinutes) {
+      if(minutes === 0) {
+        this.$emit('update:presetMode', 'PROGRAM')
+        return
+      }
+
+      var time = moment().add(minutes, 'minutes')
+      var holdUntil = moment(this.holdUntil)
+
+      if(Math.abs(holdUntil.diff(time, 'minutes')) < 15 && oldMinutes !== 0) {
+        return
+      }
+
+      this.$emit('update:holdUntil', time.format())
+    },
+    requestedTime (time) {
+      this.offsetMinutes = this.getOffsetMinutes(time)
+      this.mode = 'temp'
+    },
+    requestedTemperature (temp, oldTemp) {
+      if (temp < this.currentTemperature) {
+        this.requestedMode = 'off'
+      } else {
+        this.requestedMode = 'heat'
+      }
+
+      this.$emit('update:targetTemperature', {
+        temp: temp,
+        mode: this.requestedMode
+      })
+    },
     targetTemperature (temp) {
       this.requestedTemperature = temp
     },
@@ -179,68 +263,32 @@ export default {
     }
   },
   computed: {
-    heating () {
-      return this.hvacMode === 'heat'
-    },
-    viewBox () {
-      return `0 0 ${this.diameter} ${this.diameter}`
-    },
     radius () {
       return this.diameter / 2
     },
-    dialShape () {
+    tempChangeStyle () {
       return {
-        fill: this.backgroundColor,
-        transition: 'fill 0.5s'
+        transition: 'opacity .5s',
+        opacity: this.mode === 'temp' ? 1 : 0,
+        'pointer-events': this.mode === 'temp' ? 'initial' : 'none'
       }
     },
-    rangeValue () {
-      return this.maxTemperature - this.minTemperature
+    timeChangeStyle () {
+      return {
+        transition: 'opacity .5s',
+        opacity: this.mode === 'time' ? 1 : 0,
+        'pointer-events': this.mode === 'time' ? 'initial' : 'none'
+      }
     },
-    min () {
-      var vMin = Math.min(this.currentTemperature, this.requestedTemperature)
-
-      return this.restrictToRange(
-        Math.round((vMin - this.minTemperature) / this.rangeValue * this.numTicks),
-        0,
-        this.numTicks - 1
-      )
-    },
-    max () {
-      var vMax = Math.max(this.currentTemperature, this.requestedTemperature)
-
-      return this.restrictToRange(
-        Math.round((vMax - this.minTemperature) / this.rangeValue * this.numTicks),
-        0,
-        this.numTicks - 1
-      )
+    heating () {
+      return this.hvacMode === 'heat'
     },
     backgroundColor () {
       if (this.heating) {
-        return this.heatingBackgroundColor
+        return this.heatingColor
       } else {
         return this.inactiveBackgroundColor
       }
-    },
-    editablePathStyle () {
-      return {
-        fill: this.activeTickColor,
-        'fill-rule': 'evenodd',
-        opacity: this.dragging ? 1 : 0,
-        transition: 'opacity 0.5s'
-      }
-    },
-    lblTargetHalfStyle () {
-      return _.assign({}, this.fontStyle, {
-        fill: this.activeTickColor,
-        'font-size': '40px'
-      })
-    },
-    lblTargetStyle () {
-      return _.assign({}, this.fontStyle, {
-        fill: this.activeTickColor,
-        'font-size': '120px'
-      })
     },
     lblPresetModeStyle () {
       return _.assign({}, this.fontStyle, {
@@ -248,164 +296,145 @@ export default {
         'font-size': '22px'
       })
     },
-    lblAmbientStyle () {
-      return _.assign({}, this.fontStyle, {
+    lblPresetMode () {
+      return {
+        x: this.radius - this.radius / 25,
+        y: this.radius + this.radius / 4,
+        style: this.lblPresetModeStyle
+      }
+    },
+    lblTime () {
+      return {
+        x: this.radius,
+        y: this.radius - this.radius / 8,
         fill: this.activeTickColor,
-        'font-size': `22px`
-      })
+        style: _.assign({}, this.fontStyle, {
+          'font-size': '100px'
+        })
+      }
     },
-    lblAmbientPosition () {
-      return [
-        this.radius,
-        this.ticksOuterRadius - (this.ticksOuterRadius - this.ticksInnerRadius) / 2
-      ]
+    lblTimeLong () {
+      return {
+        x: this.radius - this.radius / 25,
+        y: this.radius + this.radius / 4,
+        style: this.lblPresetModeStyle
+      }
     },
-    lblAmbientPositionPoint () {
-      var peggedValue = this.restrictToRange(this.currentTemperature, this.minTemperature, this.maxTemperature)
-      var degs = this.tickDegrees * (peggedValue - this.minTemperature) / this.rangeValue - this.offsetDegrees
-
-      if (peggedValue > this.requestedTemperature) {
-        degs += 15
+    lblTargetHalf () {
+      return {
+        x: this.radius + this.radius / 2.5,
+        y: this.radius - this.radius / 4,
+        style: _.assign({}, this.fontStyle, {
+          fill: this.activeTickColor,
+          'font-size': '40px'
+        })
+      }
+    },
+    lblTarget () {
+      return {
+        x: this.radius - this.radius / 20,
+        y: this.radius - this.radius / 8,
+        style: _.assign({}, this.fontStyle, {
+          fill: this.activeTickColor,
+          'font-size': '120px'
+        })
+      }
+    },
+    isHoldUntil () {
+      return this.presetMode === 'HOLD_UNTIL'
+    },
+    stateIconColor () {
+      if (this.heating) {
+        return this.activeTickColor
       } else {
-        degs -= 15
+        return this.inactiveTickColor
       }
-
-      return this.rotatePoint(this.lblAmbientPosition, degs, [this.radius, this.radius])
     },
-    ticks () {
-      var ticks = []
-      for (var i = 0; i < this.numTicks; i++) {
-        var isLarge = i == this.min || i == this.max
-
-        var point = this.rotatePoints(isLarge ? this.tickPointsLarge : this.tickPoints, i * this.theta - this.offsetDegrees, [
-          this.radius, this.radius
-        ])
-        ticks.push(point)
+    modeIconColor () {
+      if (this.isHoldUntil) {
+        return this.activeTickColor
+      } else {
+        return this.inactiveTickColor
       }
-      return ticks
     },
-    offsetDegrees () {
-      return 180 - (360 - this.tickDegrees) / 2
+    displayHoldUntilAttribute () {
+      return moment(this.holdUntil).locale('uk').format('LTS')
     },
-    theta () {
-      return this.tickDegrees / this.numTicks
-    },
-    ticksOuterRadius () {
-      return this.diameter / 30
-    },
-    ticksInnerRadius () {
-      return this.diameter / 8
-    },
-    tickPoints () {
-      return [
-        [this.radius - 1, this.ticksOuterRadius],
-        [this.radius + 1, this.ticksOuterRadius],
-        [this.radius + 1, this.ticksInnerRadius],
-        [this.radius - 1, this.ticksInnerRadius]
-      ]
-    },
-    tickPointsLarge () {
-      return [
-        [this.radius - 1.5, this.ticksOuterRadius],
-        [this.radius + 1.5, this.ticksOuterRadius],
-        [this.radius + 1.5, this.ticksInnerRadius + 20],
-        [this.radius - 1.5, this.ticksInnerRadius + 20]
-      ]
-    }
   },
   methods: {
-    startDragging (e) {
-      this.dragging = true
-    },
-    stopDragging (e) {
-      this.dragging = false
-      this.$emit('update:targetTemperature', {
-        temp: this.requestedTemperature,
-        mode: this.requestedMode
-      })
-    },
-    updateDragging (e) {
-      if (!this.dragging) {
-        return
-      }
-
-      var rect = this.$refs.dial.getBoundingClientRect()
-      var center = {
-        x: (rect.left + rect.width / 2),
-        y: (rect.top + rect.height / 2)
-      }
-
-      var deltaX = e.clientX - center.x
-      var deltaY = center.y - e.clientY
-
-      var thetaRadians = Math.atan2(deltaX, deltaY)
-      var deg = thetaRadians * 180 / Math.PI
-
-      this.requestedTemperature = Math.round((deg + this.offsetDegrees) * this.rangeValue / this.tickDegrees) + this.minTemperature
-
-      if (this.requestedTemperature < this.currentTemperature) {
-        this.requestedMode = 'off'
-      } else {
-        this.requestedMode = 'heat'
+    getAmbientLabel(position) {
+      return {
+        ...position,
+        style: _.assign({}, this.fontStyle, {
+          fill: this.activeTickColor,
+          'font-size': `22px`
+        })
       }
     },
-    dialTick (index) {
-      var isActive = index >= this.min && index <= this.max
+    getBaseTrack(min, max) {
+      return {
+        fill: 'none',
+        stroke: this.inactiveTickColor,
+        'stroke-linecap': 'round',
+        'stroke-width': 20,
+        d: describeArcPath(this.radius, this.radius, this.radius * 0.8, min, max)
+      }
+    },
+    getActiveTrack(low, high) {
+      return {
+        fill: 'none',
+        stroke: this.heating ? this.heatingColor : this.inactiveTickColor,
+        'stroke-linecap': 'round',
+        'stroke-width': 20,
+        d: describeArcPath(this.radius, this.radius, this.radius * 0.8, low, high),
+      }
+    },
+    getCircleTick({rotate, isActive, index, isMin, isMax, isLow, isHigh}) {
+      var point = rotate([(this.diameter / 2), (this.diameter * 0.10)])
 
       return {
-        fill: isActive ? this.activeTickColor : this.inactiveTickColor
+        r: isHigh ? 16 : 5,
+        fill: !isHigh ? this.inactiveTickColor : this.activeTickColor,
+        opacity: !isHigh && (isMin || isMax) ? 0 : 1,
+        cx: point[0],
+        cy: point[1],
       }
     },
-    /**
-         * Rotate a cartesian point about given origin by X degrees
-         */
-    rotatePoint (point, angle, origin) {
-      var radians = angle * Math.PI / 180
-      var x = point[0] - origin[0]
-      var y = point[1] - origin[1]
-      var x1 = x * Math.cos(radians) - y * Math.sin(radians) + origin[0]
-      var y1 = x * Math.sin(radians) + y * Math.cos(radians) + origin[1]
-      return [x1, y1]
+    getOffsetMinutes (time) {
+      var hour = Math.floor(time / 2)
+      var minutes = time % 2 !== 0 ? 30 : 0
+
+      return hour * 60 + minutes
     },
-    /**
-         * Rotate an array of cartesian points about a given origin by X degrees
-         */
-    rotatePoints (points, angle, origin) {
-      return points.map(point => {
-        return this.rotatePoint(point, angle, origin)
-      })
+    displayHoldUntil (value) {
+      var offsetMinutes = this.getOffsetMinutes(value)
+
+      return moment().add(offsetMinutes, 'minutes').locale('uk').format('LTS')
     },
-    pointsToPath (points) {
-      return points.map(function (point, iPoint) {
-        return (iPoint > 0 ? 'L' : 'M') + point[0] + ' ' + point[1]
-      }).join(' ') + 'Z'
+    displayTime (value) {
+      var offsetMinutes = this.getOffsetMinutes(value)
+
+      var hour = Math.floor(offsetMinutes / 60)
+      var minutes = offsetMinutes - (hour * 60)
+
+      return `${hour}:${minutes.toString().padEnd(2, '0')}`
     },
-    circleToPath (cx, cy, r) {
-      return [
-        'M', cx, ',', cy,
-        'm', 0 - r, ',', 0,
-        'a', r, ',', r, 0, 1, ',', 0, r * 2, ',', 0,
-        'a', r, ',', r, 0, 1, ',', 0, 0 - r * 2, ',', 0,
-        'z'
-      ].join(' ').replace(/\s,\s/g, ',')
+    toggleMode () {
+      if(this.mode === 'temp') {
+        this.mode = 'time'
+      } else {
+        this.mode = 'temp'
+      }
     },
-    donutPath (cx, cy, rOuter, rInner) {
-      return this.circleToPath(cx, cy, rOuter) + ' ' + this.circleToPath(cx, cy, rInner)
+    iconOffsetX (x = 0) {
+      return this.diameter * (0.36 + x)
     },
-    /**
-         * Restrict a number to a min + max range
-         */
-	    restrictToRange (val, min, max) {
-      if (val < min) return min
-      if (val > max) return max
-      return val
+    iconOffsetY (y = 0) {
+      return this.diameter * (0.83 + y)
     },
-    /**
-         *  Round a number to the nearest 0.5
-         */
-    roundHalf (num) {
-      return Math.round(num * 2) / 2
-    }
+    roundHalf(num) {
+		  return Math.round (num * 2) /2
+    },
   }
 }
 </script>
