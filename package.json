@@ -22,7 +22,7 @@
     "eslint-plugin-vue": "^5.0.0",
     "lodash.isequal": "^4.5.0",
     "moment": "^2.24.0",
-    "node-sass": "^4.13.0",
+    "node-sass": "^4.13.1",
     "sass-loader": "^8.0.0",
     "vue-circle-slider": "^1.0.2",
     "vue-d3-network": "^0.1.28",
