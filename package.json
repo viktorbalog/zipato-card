@@ -14,8 +14,8 @@
   },
   "devDependencies": {
     "@material/mwc-button": "^0.6.0",
-    "@vue/cli-plugin-eslint": "^3.10.0",
-    "@vue/cli-service": "^3.10.0",
+    "@vue/cli-plugin-eslint": "^5.0.8",
+    "@vue/cli-service": "^5.0.8",
     "@vue/eslint-config-standard": "^4.0.0",
     "babel-eslint": "^10.0.1",
     "eslint": "^5.16.0",
@@ -23,11 +23,11 @@
     "lodash.isequal": "^4.5.0",
     "moment": "^2.24.0",
     "node-sass": "^4.13.0",
-    "sass-loader": "^8.0.0",
+    "sass-loader": "^13.2.0",
     "vue-circle-slider": "^1.0.2",
     "vue-d3-network": "^0.1.28",
     "vue-template-compiler": "^2.6.10",
     "vue2-circle-progress": "^1.2.3",
-    "webpack": "^4.41.5"
+    "webpack": "^5.75.0"
   }
 }
